@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<meta content="initial-scale=1.0,user-scalable=no,maximum-scale=1,width=device-width" name="viewport" />
+		<meta http-equiv="X-UA-Compatible" content="IE=EDGE">
+		<title>养殖产量分布图</title>
+		<link href="static/css/data.css" rel="stylesheet" type="text/css" />
+		<link rel="stylesheet" href="static/css/use.css" />
+		<link href="static/css/p_data.css" rel="stylesheet" type="text/css" />
+		<script type="text/javascript" src="static/js/jquery-3.2.1.min.js"></script>
+		<script type="text/javascript" src="static/js/echarts-all.js"></script>
+		<script type="text/javascript" src="static/js/echarts.js"></script>
+	</head>
+
+	<body>
+		<div id="main" style="width: 100%;height: 100vh;"></div>
+	</body>
+	<script type="text/javascript" src="static/js/china.js"></script>
+	<script type="text/javascript" src="static/js/world.js"></script>
+	<script type="text/javascript" src="static/js/dataTool.js"></script>
+	<script>
+		$(function() {
+			var myChart = echarts.init(document.getElementById('main'));
+			var locations = [{
+				name: '上海',
+				coord: [121.472644, 31.231706]
+			}, {
+				name: '北京',
+				coord: [116.405285, 39.904989]
+			}, {
+				name: '广东',
+				coord: [113.280637, 23.839463714285714]
+			}];
+			option = {
+				tooltip: {
+					trigger: 'item',
+					formatter: '{b}'
+				},
+				series: [{
+					name: '中国',
+					type: 'map',
+					mapType: 'china',
+					selectedMode: 'multiple',
+					label: {
+						normal: {
+							show: true
+						},
+						emphasis: {
+							show: true
+						}
+					}
+				}]
+			};
+
+			var currentLoc = 0;
+			setInterval(function() {
+				myChart.setOption({
+					series: [{
+						center: locations[currentLoc].coord,
+						zoom: 4,
+						data: [{
+							name: locations[currentLoc].name,
+							selected: true
+						}],
+						animationDurationUpdate: 1000,
+						animationEasingUpdate: 'cubicInOut'
+					}]
+				});
+				currentLoc = (currentLoc + 1) % locations.length;
+			}, 2000);
+
+			myChart.setOption(option);
+		})
+	</script>
+
+</html>

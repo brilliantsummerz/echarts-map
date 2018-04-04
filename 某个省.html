@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="Access-Control-Allow-Origin" content="*.ttlsa.com">
+		<meta content="initial-scale=1.0,user-scalable=no,maximum-scale=1,width=device-width" name="viewport" />
+		<meta http-equiv="X-UA-Compatible" content="IE=EDGE">
+		<title>养殖产量分布图</title>
+		<script type="text/javascript" src="static/js/jquery-3.2.1.min.js"></script>
+		<script type="text/javascript" src="static/js/echarts-all.js"></script>
+		<script type="text/javascript" src="static/js/echarts.js"></script>
+		<style>
+			html,
+			body {
+				margin: 0;
+				padding: 0;
+			}
+		</style>
+	</head>
+
+	<body>
+		
+		<input type="text" id="input" /><button id="qwe">加载</button>
+		<div id="main" style="width: 100%;height: 90vh;"></div>
+	</body>
+	<script>
+		
+		
+		$(function(){
+			$.getScript('http://www.zxmlovecxf.我爱你/static/js/translate.js');
+		})
+		
+		var name = '江苏省',mapName = '江苏', spellName = 'jiangsu', myChart = echarts.init(document.getElementById('main')), geoCoordMap = new Object();;
+		$('#qwe').click(function(){
+			var val = $('#input').val();
+			mapName = val;
+			name = val + '省';
+			val = ConvertPinyin(val);
+			spellName = val;
+			console.log(val);
+			$.getScript('static/js/province/' + val + '.js');
+			geojson();
+			showProvince();
+		})
+	
+
+		function geojson() {
+			$.ajax({
+				url: 'static/json/province/' + spellName + '.json',
+				dataType: 'json',
+				async: false,
+				success: function(json) {
+					var features = json.features;
+					$.each(features, function(i, obj) {
+						var properties = obj.properties;
+						var name = properties.name; //省份
+						var cp = properties.cp; //地理位置
+						geoCoordMap[name] = cp;
+					});
+					console.log(geoCoordMap);
+
+				},
+				error: function(xhr, status, error) {
+
+				}
+			}); //ajax end
+		}
+
+		var convertData = function(data) {
+			var res = [];
+			//console.log(data);
+			for(var i = 0; i < data.length; i++) {
+				var geoCoord = geoCoordMap[data[i].name];
+				if(geoCoord) {
+					res.push({
+						name: data[i].name,
+						value: geoCoord.concat(data[i].value),
+					});
+				}
+			}
+			//console.log(res);
+			//console.log(JSON.stringify(res));
+			return res;
+		};
+
+		
+
+			
+
+			
+			function showProvince() {
+
+				myChart.showLoading();
+				$.ajax({
+					url: 'http://39.106.126.16/static/json/province/jiangsu.jsonp',
+					dataType: 'jsonp',
+					data: 'GET',
+					jsonpCallback: "zxmlovecxf",
+					data: {},
+					success: function(geoJson) { //接口访问成功执行的函数
+						myChart.hideLoading();
+
+						//echarts.registerMap(name, geoJson);
+
+						myChart.setOption(option = {
+							backgroundColor: 'rgba(0,0,0,0)',
+							title: {
+								text: name,
+								left: 'center',
+								textStyle: {
+									color: '#000'
+								}
+							},
+							tooltip: {
+								trigger: 'item',
+								formatter:function(val){
+									var a = val.data.name;
+									var b = val.data.value[2];
+									return a + ':' + b;
+								}
+							},
+							geo: {
+								map: mapName,
+								label: {
+									emphasis: {
+										show: false
+									}
+								},
+								roam: false,
+								itemStyle: {
+									normal: {
+										areaColor: '#323c48',
+										borderColor: '#111'
+									},
+									emphasis: {
+										areaColor: '#2a333d'
+									}
+								}
+							},
+							series: [{
+								//								type: 'map',
+								//								mapType: name,	
+								type: 'effectScatter',
+								coordinateSystem: 'geo',
+								symbolSize: function(val) {
+									return 20;
+								},
+								label: {
+					                normal: {
+					                    position: 'right',
+					                    show: false
+					                },
+					                emphasis: {
+					                    show: false
+					                }
+					            },
+								showEffectOn: 'render',
+					            rippleEffect: {
+					                brushType: 'stroke'
+					            },
+								hoverAnimation: true,
+								itemStyle: {
+					                normal: {
+					                    color: '#f4e925',
+					                    shadowBlur: 10,
+					                    shadowColor: '#333'
+					                }
+					            },
+								data: convertData(dat)
+							}]
+						});
+					},
+					error: function(xhr, status, error) { //接口访问失败执行的函数
+
+					}
+				}); //ajax end
+			}
+
+			
+	</script>
+
+</html>
